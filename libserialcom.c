@@ -9,23 +9,8 @@
 // }
 char PORTNAME[14] = "/dev/tty/USB0\0";
 
-typedef struct WheelState {
-    uint32_t wheel_turn;
-    uint8_t acc_pedal;
-    uint8_t brake_pedal;
-    bool button_1;
-    bool button_2;
-    bool button_3;
-    bool button_4;
-    bool button_5;
-    bool button_6;
-    bool button_7;
-    bool button_8;
-    bool button_9;
-    bool button_10;
-    uint16_t checksum;
-} wheel_state;
-void read_bytes(struct sp_port *port, wheel_state *state) {
+
+void read_bytes(struct sp_port *port, WheelState *state) {
     char buf[10];
     sp_nonblocking_read(port, buf, 12);
     // 1 byte is start byte
@@ -57,7 +42,7 @@ void send_bytes(struct sp_port *port, char *data) {
     sp_nonblocking_write(port, data, sizeof(data));
 }
 
-uint16_t calculate_crc16_checksum(wheel_state *state) {
+uint16_t calculate_crc16_checksum(WheelState *state) {
     char buf[7];
     buf[0] = (state->wheel_turn >> 16) & 0xFF;
     buf[1] = (state->wheel_turn >> 8) & 0xFF;

@@ -10,10 +10,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wheel-desktop-software", "W
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libserialport", "..\libserialport\libserialport.vcxproj", "{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vJoyClient", "..\SDK\src\vJoyClient.vcxproj", "{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Rel64|x64 = Rel64|x64
+		Rel64|x86 = Rel64|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -22,6 +26,10 @@ Global
 		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Debug|x64.Build.0 = Debug|x64
 		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Debug|x86.ActiveCfg = Debug|Win32
 		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Debug|x86.Build.0 = Debug|Win32
+		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Rel64|x64.ActiveCfg = Release|x64
+		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Rel64|x64.Build.0 = Release|x64
+		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Rel64|x86.ActiveCfg = Release|Win32
+		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Rel64|x86.Build.0 = Release|Win32
 		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Release|x64.ActiveCfg = Release|x64
 		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Release|x64.Build.0 = Release|x64
 		{6ABBB132-F712-4E8D-AA07-259FA79BADBB}.Release|x86.ActiveCfg = Release|Win32
@@ -30,10 +38,26 @@ Global
 		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Debug|x64.Build.0 = Debug|x64
 		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Debug|x86.ActiveCfg = Debug|Win32
 		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Debug|x86.Build.0 = Debug|Win32
+		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Rel64|x64.ActiveCfg = Release|x64
+		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Rel64|x64.Build.0 = Release|x64
+		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Rel64|x86.ActiveCfg = Release|Win32
+		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Rel64|x86.Build.0 = Release|Win32
 		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Release|x64.ActiveCfg = Release|x64
 		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Release|x64.Build.0 = Release|x64
 		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Release|x86.ActiveCfg = Release|Win32
 		{1C8EAAF2-133E-4CEE-8981-4A903A8B3935}.Release|x86.Build.0 = Release|Win32
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Debug|x64.ActiveCfg = Debug|x64
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Debug|x64.Build.0 = Debug|x64
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Debug|x86.ActiveCfg = Debug|Win32
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Debug|x86.Build.0 = Debug|Win32
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Rel64|x64.ActiveCfg = Rel64|x64
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Rel64|x64.Build.0 = Rel64|x64
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Rel64|x86.ActiveCfg = Rel64|Win32
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Rel64|x86.Build.0 = Rel64|Win32
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Release|x64.ActiveCfg = Release|x64
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Release|x64.Build.0 = Release|x64
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Release|x86.ActiveCfg = Release|Win32
+		{A3C0D9FE-F4A3-45F9-874A-AC2E6806477C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
