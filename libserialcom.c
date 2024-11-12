@@ -1,5 +1,5 @@
 #include "libserialcom.h"
-#include <libserialport.h>
+#include "libserialport.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -23,7 +23,7 @@ typedef struct WheelState {
     bool button_8;
     bool button_9;
     bool button_10;
-    uint16_t checksum;;
+    uint16_t checksum;
 } wheel_state;
 void read_bytes(struct sp_port *port, wheel_state *state) {
     char buf[10];
