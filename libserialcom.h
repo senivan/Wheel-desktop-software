@@ -4,22 +4,27 @@
 #include <stdint.h>
 
 // void hello(void);
-typedef struct WheelState {
-    uint32_t wheel_turn;
-    uint8_t acc_pedal;
-    uint8_t brake_pedal;
-    bool button_1;
-    bool button_2;
-    bool button_3;
-    bool button_4;
-    bool button_5;
-    bool button_6;
-    bool button_7;
-    bool button_8;
-    bool button_9;
-    bool button_10;
-    uint16_t checksum;
-} WheelState;
+typedef struct __attribute__((packed)){
+	int rotation;
+	bool left_arr;
+	bool right_arr;
+	bool up_arr;
+	bool down_arr;
+
+	bool a_butt;
+	bool b_butt;
+	bool x_butt;
+	bool y_butt;
+
+	bool dl_butt;
+	bool dr_butt;
+
+	bool r_shift;
+	bool l_shift;
+
+	int acceleration;
+	int breaking;
+} WheelSystemState;
 void init_serial(struct sp_port* port);
 void send_bytes(struct sp_port* port, char* data);
 void read_bytes(struct sp_port* port, WheelState* state);
