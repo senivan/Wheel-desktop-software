@@ -4,31 +4,33 @@
 #include <stdint.h>
 
 // void hello(void);
-typedef struct __attribute__((packed)){
-	int rotation;
-	bool left_arr;
-	bool right_arr;
-	bool up_arr;
-	bool down_arr;
+#pragma pack(1)
+typedef struct{
+	uint8_t rotation;
+	uint8_t left_arr;
+	uint8_t right_arr;
+	uint8_t up_arr;
+	uint8_t down_arr;
 
-	bool a_butt;
-	bool b_butt;
-	bool x_butt;
-	bool y_butt;
+	uint8_t a_butt;
+	uint8_t b_butt;
+	uint8_t x_butt;
+	uint8_t y_butt;
 
-	bool dl_butt;
-	bool dr_butt;
+	uint8_t dl_butt;
+	uint8_t dr_butt;
 
-	bool r_shift;
-	bool l_shift;
+	uint8_t r_shift;
+	uint8_t l_shift;
 
-	int acceleration;
-	int breaking;
+	uint8_t acceleration;
+	uint8_t breaking;
 } WheelSystemState;
-void init_serial(struct sp_port* port);
-void send_bytes(struct sp_port* port, char* data);
-void read_bytes(struct sp_port* port, WheelState* state);
-uint16_t calculate_crc16_checksum(WheelState* state);
-bool close_serial(struct sp_port* port);
+#pragma pack()
+struct sp_port* init_serial();
+	void send_bytes(struct sp_port* port, char* data);
+	WheelSystemState read_bytes(struct sp_port** port);
+	uint16_t calculate_crc16_checksum(WheelSystemState* state);
+	bool close_serial(struct sp_port* port);
 
 #endif //UNTITLED_LIBRARY_H

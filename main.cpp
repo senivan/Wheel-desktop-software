@@ -2,7 +2,9 @@
 // Created by user on 11/9/24.
 //
 //#include <stdio.h>
-#include "libserialcom.h"
+extern "C" {
+	#include "libserialcom.h"
+}
 //#include "..\SDK\inc\public.h"
 ////#include "..\SDK\inc\vjoyinterface.h"
 #include "stdafx.h"
@@ -18,13 +20,14 @@
 
 JOYSTICK_POSITION_V2 iReport;
 
-extern "C" {
-	void init_serial(struct sp_port** port);
-	void read_bytes(struct sp_port** port, WheelState* state);
-}
+//extern "C" {
+//	//void init_serial(struct sp_port **port);
+//	WheelSystemState read_bytes(struct sp_port** port);
+//}
 int main() {
-    struct sp_port *port;
-    init_serial(&port);
+	struct sp_port *port;
+    //init_serial(&port);
+	port = init_serial();
     printf("Hello, World!\n");
 	int stat = 0;
 	UINT DevID = DEV_ID;
@@ -87,43 +90,59 @@ int main() {
 
 	// Read serial, push serial to vjoydriver in a loop
 	
-	WheelState state;
-	read_bytes(&port, &state);
+	WheelSystemState state;
+	try {
+		state = read_bytes(&port);
+	}
+	catch (int e) {
+		printf("Error reading bytes\n");
+	}
 	while (1) {
-		read_bytes(&port, &state);
-		X = state.wheel_turn;
-		Y = state.acc_pedal;
-		Z = state.brake_pedal;
+		try {
+			state = read_bytes(&port);
+		}
+		catch (int e) {
+			printf("Error reading bytes\n");
+		}
+		X = state.rotation;
+		Y = state.acceleration;
+		Z = state.breaking;
 		Btns = 0;
-		if (state.button_1) {
+		if (state.up_arr) {
 			Btns |= 1;
 		}
-		if (state.button_2) {
+		if (state.right_arr) {
 			Btns |= 2;
 		}
-		if (state.button_3) {
+		if (state.down_arr) {
 			Btns |= 4;
 		}
-		if (state.button_4) {
+		if (state.left_arr) {
 			Btns |= 8;
 		}
-		if (state.button_5) {
+		if (state.a_butt) {
 			Btns |= 16;
 		}
-		if (state.button_6) {
+		if (state.x_butt) {
 			Btns |= 32;
 		}
-		if (state.button_7) {
+		if (state.y_butt) {
 			Btns |= 64;
 		}
-		if (state.button_8) {
+		if (state.b_butt) {
 			Btns |= 128;
 		}
-		if (state.button_9) {
+		if (state.dl_butt) {
 			Btns |= 256;
 		}
-		if (state.button_10) {
+		if (state.dr_butt) {
 			Btns |= 512;
+		}
+		if (state.l_shift) {
+			Btns |= 1024;
+		}
+		if (state.r_shift) {
+			Btns |= 2048;
 		}
 		iReport.bDevice = DEV_ID;
 		iReport.wAxisX = X;
