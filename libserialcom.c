@@ -20,7 +20,7 @@ WheelSystemState read_bytes(struct sp_port **port) {
 	sp_blocking_write(*port, &temp[0], 1, 1000);
 	sp_blocking_read(*port, temp, 1, 1000);
 	while ((uint8_t)temp[0] != 83) {
-		//printf("%d\n", temp[0]);
+		printf("%d\n", temp[0]);
 		sp_blocking_read(*port, temp, 1, 1000);
 	}
     printf("Received data\n");
@@ -87,7 +87,7 @@ void send_bytes(struct sp_port *port, char *data) {
 
 struct sp_port* init_serial() {
 	struct sp_port* port = (struct sp_port*)malloc(sizeof(struct sp_port*));
-    sp_get_port_by_name("\\\\.\\COM8", &port);
+    sp_get_port_by_name("\\\\.\\COM6", &port);
     sp_open(port, SP_MODE_READ_WRITE);
     sp_set_baudrate(port, 115200);
 	sp_set_bits(port, 8);
