@@ -124,7 +124,7 @@ void send_bytes(struct sp_port *port, char *data) {
 
 struct sp_port* init_serial() {
 	struct sp_port* port = (struct sp_port*)malloc(sizeof(struct sp_port*));
-    sp_get_port_by_name("\\\\.\\COM3", &port);
+    sp_get_port_by_name("\\\\.\\COM9", &port);
     sp_open(port, SP_MODE_READ_WRITE);
     sp_set_baudrate(port, 256000);
 	sp_set_bits(port, 8);
