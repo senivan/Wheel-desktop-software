@@ -15,6 +15,7 @@ extern "C" {
 #include <stdlib.h>
 #include "vjoyinterface.h"
 #include "Math.h"
+#include <time.h>
 
 #define DEV_ID		1
 
@@ -35,6 +36,10 @@ int main() {
 	USHORT Y = 0;
 	USHORT Z = 0;
 	LONG   Btns = 0;
+	FILE* logfile;
+	logfile = fopen("Potentiometer.csv", "w+");
+	if (logfile == NULL) return -1;
+	fprintf(logfile, "Timestamp, Poten, Left_arr, Right_arr, Down_arr, Up_arr, A_butt, B_butt, X_butt, Y_butt, DL_butt, DR_butt, R_shift, L_shift\n");
 
 
 	PVOID pPositionMessage;
@@ -150,9 +155,11 @@ int main() {
 		iReport.wAxisZ = Z;
 		iReport.lButtons = Btns;
 		iReport.bHats = 0x0;
+		unsigned long timestamp = (unsigned long)time(NULL);
+		fprintf(logfile, "%lu, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", timestamp, state.rotation, state.left_arr, state.right_arr, state.down_arr, state.up_arr, state.a_butt, state.b_butt, state.x_butt, state.y_butt, state.dl_butt, state.dr_butt, state.r_shift, state.l_shift);
 		UpdateVJD(DevID, (PVOID)&iReport);
 	}
 
-
+	fclose(logfile);
     return 0;
 }

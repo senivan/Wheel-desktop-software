@@ -6,7 +6,7 @@
 // void hello(void);
 #pragma pack(1)
 typedef struct{
-	uint8_t rotation;
+	uint16_t rotation;
 	uint8_t left_arr;
 	uint8_t right_arr;
 	uint8_t up_arr;
