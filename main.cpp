@@ -96,6 +96,7 @@ int main() {
 	// Read serial, push serial to vjoydriver in a loop
 	
 	WheelSystemState state;
+	calibrate_wheel(&port);
 	try {
 		state = read_bytes(&port);
 	}
@@ -109,6 +110,7 @@ int main() {
 		catch (int e) {
 			printf("Error reading bytes\n");
 		}
+		printf("Rotation: %d\n", state.rotation);
 		X = state.rotation;
 		Y = state.acceleration;
 		Z = state.breaking;

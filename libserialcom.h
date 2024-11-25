@@ -6,7 +6,7 @@
 // void hello(void);
 #pragma pack(1)
 typedef struct{
-	uint16_t rotation;
+	int16_t rotation;
 	uint8_t left_arr;
 	uint8_t right_arr;
 	uint8_t up_arr;
@@ -32,5 +32,6 @@ struct sp_port* init_serial();
 	WheelSystemState read_bytes(struct sp_port** port);
 	uint16_t calculate_crc16_checksum(WheelSystemState* state);
 	bool close_serial(struct sp_port* port);
+	void calibrate_wheel(struct sp_port** port);
 
 #endif //UNTITLED_LIBRARY_H

@@ -5,9 +5,41 @@
 #include <string.h>
 #include <stdio.h>
 
-// void hello(void) {
-//     printf("Hello, World!\n");
-// }
+uint16_t center = 0;
+uint16_t delta = 0;
+uint16_t left_max = 0;
+uint16_t right_max = 0;
+
+
+void calibrate_wheel(struct sp_port **port) {
+    printf("Rotate wheel to the left until he end!!! Then press 2 shifters...\n");
+	WheelSystemState temp = read_bytes(port);
+    while (temp.r_shift != 1 || temp.l_shift != 1) {
+		temp = read_bytes(port);
+    }
+	left_max = temp.rotation;
+    printf("Release the shifters...\n");
+    while (temp.r_shift != 0 || temp.l_shift != 0) {
+		temp = read_bytes(port);
+    }
+	printf("Rotate wheel to the right until he end!!! Then press 2 shifters...\n");
+	while (temp.r_shift != 1 || temp.l_shift != 1) {
+		temp = read_bytes(port);
+	}
+	right_max = temp.rotation;
+	printf("Release the shifters...\n");
+	while (temp.r_shift != 0 || temp.l_shift != 0) {
+		temp = read_bytes(port);
+	}
+	printf("Calibration done!\n");
+	printf("Left max: %d\n", left_max);
+	printf("Right max: %d\n", right_max);
+	printf("Center: %d\n", (left_max + right_max) / 2);
+	center = (left_max + right_max) / 2;
+	delta = (right_max > center) ? right_max - center : left_max - center;
+	printf("Calibration done!\n");
+}
+
 WheelSystemState read_bytes(struct sp_port **port) {
     WheelSystemState state;
     uint8_t buf[6];
@@ -16,14 +48,14 @@ WheelSystemState read_bytes(struct sp_port **port) {
     memset(buf, 0, sizeof(buf));
 	//memset(temp, 0, sizeof(temp));
     //delay(100);
-    printf("Sending poll byte\n");
+    //printf("Sending poll byte\n");
 	sp_blocking_write(*port, &temp[0], 1, 1000);
 	sp_blocking_read(*port, temp, 1, 1000);
 	//w/*hile ((uint8_t)temp[0] != 83) {
 	//	printf("%d\n", temp[0]);
 	//	sp_blocking_read(*port, temp, 1, 1000);
 	//}*/
-    printf("Received data\n");
+    //printf("Received data\n");
  
     /*while (true) {
 		
@@ -51,7 +83,13 @@ WheelSystemState read_bytes(struct sp_port **port) {
 	memcpy(&state.acceleration, &buf[4], 1);
 	memcpy(&state.breaking, &buf[5], 1);
 	//printf("Rotation: %d\n", state.rotation);
-	printf("State: %d %d %d %d %d %d %d %d %d %d %d %d %d\n", state.rotation, state.left_arr, state.right_arr, state.down_arr, state.up_arr, state.a_butt, state.b_butt, state.x_butt, state.y_butt, state.dl_butt, state.dr_butt, state.r_shift, state.l_shift);
+
+	//normalise_rotation(&state.rotation);
+	if (delta == 0) {
+		return state;
+	}
+	state.rotation = (((state.rotation - center) * 32767 / delta)+32767) / 2;
+	//printf("State: %d %d %d %d %d %d %d %d %d %d %d %d %d\n", state.rotation, state.left_arr, state.right_arr, state.down_arr, state.up_arr, state.a_butt, state.b_butt, state.x_butt, state.y_butt, state.dl_butt, state.dr_butt, state.r_shift, state.l_shift);
 	return state;
 }
 
