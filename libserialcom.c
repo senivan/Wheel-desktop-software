@@ -11,38 +11,79 @@ uint16_t left_max = 0;
 uint16_t right_max = 0;
 
 
-void calibrate_wheel(struct sp_port **port) {
-    printf("Rotate wheel to the left until he end!!! Then press 2 shifters...\n");
-	WheelSystemState temp = read_bytes(port);
-    while (temp.r_shift != 1 || temp.l_shift != 1) {
-		temp = read_bytes(port);
-    }
-	left_max = temp.rotation;
-    printf("Release the shifters...\n");
-    while (temp.r_shift != 0 || temp.l_shift != 0) {
-		temp = read_bytes(port);
-    }
-	printf("Rotate wheel to the right until he end!!! Then press 2 shifters...\n");
-	while (temp.r_shift != 1 || temp.l_shift != 1) {
-		temp = read_bytes(port);
-	}
-	right_max = temp.rotation;
-	printf("Release the shifters...\n");
-	while (temp.r_shift != 0 || temp.l_shift != 0) {
-		temp = read_bytes(port);
-	}
-	printf("Calibration done!\n");
-	printf("Left max: %d\n", left_max);
-	printf("Right max: %d\n", right_max);
-	printf("Center: %d\n", (left_max + right_max) / 2);
-	center = (left_max + right_max) / 2;
-	delta = (right_max > center) ? right_max - center : left_max - center;
-	printf("Calibration done!\n");
-}
+//void calibrate_wheel(struct sp_port **port) {
+//    printf("Rotate wheel to the left until he end!!! Then press 2 shifters...\n");
+//	uint8_t* temp = read_calibration(port);
+//	//WheelSystemState temp1 = read_bytes(port);
+//	//temp1.rotation = temp[0] | (temp[1] << 8);
+//	//temp1.r_shift = temp[2] & 0x01;
+//	//temp1.l_shift = (temp[2] >> 1) & 0x01;
+//    while (temp1.r_shift != 1 || temp1.l_shift != 1) {
+//		//temp = read_calibration(port);
+//		temp1 = read_bytes(port);
+//
+//    }
+//	left_max = temp1.rotation - 10;
+//    printf("Release the shifters...\n");
+//    while (temp1.r_shift != 0 || temp1.l_shift != 0) {
+//		//temp = read_calibration(port);
+//		temp1 = read_bytes(port);
+//    }
+//	printf("Rotate wheel to the right until he end!!! Then press 2 shifters...\n");
+//	while (temp1.r_shift != 1 || temp1.l_shift != 1) {
+//		temp1 = read_bytes(port);
+//	}
+//	right_max = temp1.rotation+10;
+//	printf("Release the shifters...\n");
+//	while (temp1.r_shift != 0 || temp1.l_shift != 0) {
+//		temp1 = read_bytes(port);
+//	}
+//	printf("Calibration done!\n");
+//	printf("Left max: %d\n", left_max);
+//	printf("Right max: %d\n", right_max);
+//	printf("Center: %d\n", (left_max + right_max) / 2);
+//	center = (left_max + right_max) / 2;
+//	delta = (right_max > center) ? right_max - center : left_max - center;
+//	printf("Calibration done!\n");
+//}
 
+void calibrate_wheel(struct sp_port** port)
+{
+	uint8_t buf[7];
+	uint8_t temp[1];
+	printf("Rotate wheel to the left until he end!!!\n");
+	temp[0] = 0x42;
+	bool left_flag = false;
+	bool right_flag = false;
+	while (true) {
+		sp_blocking_write(*port, temp, 1, 1000);
+		sp_blocking_read(*port, buf, 7, 1000);
+		uint16_t rotation = buf[0] | (buf[1] << 8);
+		uint16_t acceleration = buf[2] | (buf[3] << 8);
+		uint16_t breaking = buf[4] | (buf[5] << 8);
+		uint8_t left_stop = buf[6] & 0x01;
+		uint8_t right_stop = (buf[6] >> 1) & 0x01;
+		printf("State: %d %d %d %d %d\n", rotation, acceleration, breaking, left_stop, right_stop);
+		if (left_stop == 1) {
+			left_flag = true;
+			left_max = rotation - 10;
+			printf("Now turn to the right\n");
+		}
+		if (right_stop == 1) {
+			right_flag = true;
+			printf("Now release the wheel\n");
+			right_max = rotation + 10;
+		}
+		//if/* (left_flag && right_flag) {
+		//	printf("Calibration done!\n");
+		//	break;
+		//}
+	}
+	
+}
 WheelSystemState read_bytes(struct sp_port **port) {
     WheelSystemState state;
-    uint8_t buf[6];
+    uint8_t buf[8];
     uint8_t temp[1];
     temp[0] = 0x69;
     memset(buf, 0, sizeof(buf));
@@ -51,10 +92,10 @@ WheelSystemState read_bytes(struct sp_port **port) {
     //printf("Sending poll byte\n");
 	sp_blocking_write(*port, &temp[0], 1, 1000);
 	sp_blocking_read(*port, temp, 1, 1000);
-	//w/*hile ((uint8_t)temp[0] != 83) {
+	//while ((uint8_t)temp[0] != 83) {
 	//	printf("%d\n", temp[0]);
 	//	sp_blocking_read(*port, temp, 1, 1000);
-	//}*/
+	//}
     //printf("Received data\n");
  
     /*while (true) {
@@ -80,8 +121,10 @@ WheelSystemState read_bytes(struct sp_port **port) {
 	state.r_shift = (buf[3] >> 2) & 0x01;
 	state.l_shift = (buf[3] >> 3) & 0x01;
 
-	memcpy(&state.acceleration, &buf[4], 1);
-	memcpy(&state.breaking, &buf[5], 1);
+	memcpy(&state.acceleration, &buf[4], 2);
+	memcpy(&state.breaking, &buf[6], 2);
+	printf("State: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", state.rotation, state.left_arr, state.right_arr, state.down_arr, state.up_arr, state.a_butt, state.b_butt, state.x_butt, state.y_butt, state.dl_butt, state.dr_butt, state.r_shift, state.l_shift, state.acceleration, state.breaking);
+
 	//printf("Rotation: %d\n", state.rotation);
 
 	//normalise_rotation(&state.rotation);
@@ -89,12 +132,15 @@ WheelSystemState read_bytes(struct sp_port **port) {
 		return state;
 	}
 	state.rotation = (((state.rotation - center) * 32767 / delta)+32767) / 2;
-	//printf("State: %d %d %d %d %d %d %d %d %d %d %d %d %d\n", state.rotation, state.left_arr, state.right_arr, state.down_arr, state.up_arr, state.a_butt, state.b_butt, state.x_butt, state.y_butt, state.dl_butt, state.dr_butt, state.r_shift, state.l_shift);
 	return state;
 }
 
-void send_bytes(struct sp_port *port, char *data) {
-    sp_nonblocking_write(port, data, sizeof(data));
+void send_ffb_bytes(struct sp_port *port, ffb_packet ffb) {
+	char data[3];
+	data[0] = 0x34;
+	data[1] = ffb.ffb_strength;
+	data[2] = (ffb.ffb_direction << 7) | (ffb.ffb_type << 5);
+    sp_nonblocking_write(port, data, 3);
 }
 
 /*uint16_t calculate_crc16_checksum(WheelSystemState* state) {
@@ -124,9 +170,9 @@ void send_bytes(struct sp_port *port, char *data) {
 
 struct sp_port* init_serial() {
 	struct sp_port* port = (struct sp_port*)malloc(sizeof(struct sp_port*));
-    sp_get_port_by_name("\\\\.\\COM9", &port);
+    sp_get_port_by_name("\\\\.\\COM3", &port);
     sp_open(port, SP_MODE_READ_WRITE);
-    sp_set_baudrate(port, 256000);
+    sp_set_baudrate(port, 115200);
 	sp_set_bits(port, 8);
 	sp_set_parity(port, SP_PARITY_NONE);
 	sp_set_stopbits(port, 1);

@@ -20,6 +20,17 @@ extern "C" {
 #define DEV_ID		1
 
 JOYSTICK_POSITION_V2 iReport;
+//void  CALLBACK FfbFunction(PVOID data) {
+//	printf("FFB\n");
+//	FFB_DATA* FfbData = (FFB_DATA*)data;
+//	FFBEType FfbEffect = (FFBEType)-1;
+//	LPCTSTR FfbEffectName[] =
+//	{ "NONE", "Constant Force", "Ramp" };
+//	
+//
+//	
+//};
+
 
 //extern "C" {
 //	//void init_serial(struct sp_port **port);
@@ -29,7 +40,10 @@ int main() {
 	struct sp_port *port;
     //init_serial(&port);
 	port = init_serial();
-    printf("Hello, World!\n");
+    //printf("Hello, World!\n");
+	static FFBEType FfbEffect = (FFBEType)-1;
+	LPCTSTR FfbEffectName[] =
+	{ "NONE", "Constant Force", "Ramp"};
 	int stat = 0;
 	UINT DevID = DEV_ID;
 	USHORT X = 0;
@@ -93,9 +107,21 @@ int main() {
 	else
 		_tprintf("Acquired device number %d - OK\n", DevID);
 
-	// Read serial, push serial to vjoydriver in a loop
-	
+	// register ffb callback
+	//BOOL Ffbstarted = FfbStart(DevID);/*
+	/*if (!Ffbstarted)
+	{
+		_tprintf("Failed to start FFB on vJoy device number %d.\n", DevID);
+		int dummy = getchar();
+		stat = -3;
+		return;
+	}
+	else
+		_tprintf("Started FFB on vJoy device number %d - OK\n", DevID);*/
+
 	WheelSystemState state;
+	ffb_packet ffb;
+	// Read serial, push serial to vjoydriver in a loop
 	calibrate_wheel(&port);
 	try {
 		state = read_bytes(&port);
