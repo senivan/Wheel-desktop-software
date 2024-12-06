@@ -136,7 +136,7 @@ int main() {
 		catch (int e) {
 			printf("Error reading bytes\n");
 		}
-		printf("Rotation: %d\n", state.rotation);
+		printf("Rotation: %d; Breaking: %d; Acc_pedal: %d\n", state.rotation, state.breaking, state.acceleration);
 		X = state.rotation;
 		Y = state.acceleration;
 		Z = state.breaking;
