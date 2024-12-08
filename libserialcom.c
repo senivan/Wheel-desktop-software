@@ -68,6 +68,15 @@ uint16_t acceleration_end = 1250;
 //	printf("Calibration done!\n");
 //}
 
+void send_const_force(struct sp_port** port, int16_t force) {
+	uint8_t data[3];
+	data[0] = 0x34;
+	data[1] = 0x01;
+	data[2] = force & 0xFF;
+	data[3] = (force >> 8) & 0xFF;
+	sp_blocking_write(*port, data, 4, 1000);
+}
+
 void calibrate_wheel(struct sp_port** port)
 {
 	uint8_t buf[7];

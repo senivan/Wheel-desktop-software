@@ -270,8 +270,7 @@ void ParseFfbData(PVOID data) {
 			//std::cout << "Constant Force: Magnitude = " << magnitude << std::endl;*/
 		FFB_EFF_CONSTANT Effect;
 		Ffb_h_Eff_Constant((FFB_DATA*)data, &Effect);
-		std::cout << "Constant Force: Magnitude = " << Effect.Magnitude << std::endl;
-		break;
+		send_const_force(Effect.Magnitude);
 	}
 	}
 	// Handle the command type
@@ -465,7 +464,7 @@ void CALLBACK FfbFunction1(PVOID data, PVOID userdata)
 
 	_tprintf("\n");
 	FfbFunction(data);
-	ParseFfbData(data);
+
 	_tprintf("\n ====================================================\n");
 
 }

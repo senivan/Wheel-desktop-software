@@ -39,5 +39,6 @@ struct sp_port* init_serial();
 	bool close_serial(struct sp_port* port);
 	void calibrate_wheel(struct sp_port** port);
 	uint8_t* read_calibration(struct sp_port** port);
+	void send_const_force(struct sp_port** port,int16_t force);
 
 #endif //UNTITLED_LIBRARY_H
