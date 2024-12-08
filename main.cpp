@@ -32,65 +32,444 @@ JOYSTICK_POSITION_V2 iReport;
 //	
 //};
 
+FILE* ffb_file = fopen("test.txt", "w+");
+// Convert Packet type to String
+BOOL PacketType2Str(FFBPType Type, LPTSTR OutStr)
+{
+	BOOL stat = TRUE;
+	LPTSTR Str = "";
+
+	switch (Type)
+	{
+	case PT_EFFREP:
+		Str = "Effect Report";
+		break;
+	case PT_ENVREP:
+		Str = "Envelope Report";
+		break;
+	case PT_CONDREP:
+		Str = "Condition Report";
+		break;
+	case PT_PRIDREP:
+		Str = "Periodic Report";
+		break;
+	case PT_CONSTREP:
+		Str = "Constant Force Report";
+		break;
+	case PT_RAMPREP:
+		Str = "Ramp Force Report";
+		break;
+	case PT_CSTMREP:
+		Str = "Custom Force Data Report";
+		break;
+	case PT_SMPLREP:
+		Str = "Download Force Sample";
+		break;
+	case PT_EFOPREP:
+		Str = "Effect Operation Report";
+		break;
+	case PT_BLKFRREP:
+		Str = "PID Block Free Report";
+		break;
+	case PT_CTRLREP:
+		Str = "PID Device Contro";
+		break;
+	case PT_GAINREP:
+		Str = "Device Gain Report";
+		break;
+	case PT_SETCREP:
+		Str = "Set Custom Force Report";
+		break;
+	case PT_NEWEFREP:
+		Str = "Create New Effect Report";
+		break;
+	case PT_BLKLDREP:
+		Str = "Block Load Report";
+		break;
+	case PT_POOLREP:
+		Str = "PID Pool Report";
+		break;
+	default:
+		stat = FALSE;
+		break;
+	}
+
+	if (stat)
+		_tcscpy_s(OutStr, 100, Str);
+
+	return stat;
+}
+
+// Convert Effect type to String
+BOOL EffectType2Str(FFBEType Type, LPTSTR OutStr)
+{
+	BOOL stat = TRUE;
+	LPTSTR Str = "";
+
+	switch (Type)
+	{
+	case ET_NONE:
+		stat = FALSE;
+		break;
+	case ET_CONST:
+		Str = "Constant Force";
+		break;
+	case ET_RAMP:
+		Str = "Ramp";
+		break;
+	case ET_SQR:
+		Str = "Square";
+		break;
+	case ET_SINE:
+		Str = "Sine";
+		break;
+	case ET_TRNGL:
+		Str = "Triangle";
+		break;
+	case ET_STUP:
+		Str = "Sawtooth Up";
+		break;
+	case ET_STDN:
+		Str = "Sawtooth Down";
+		break;
+	case ET_SPRNG:
+		Str = "Spring";
+		break;
+	case ET_DMPR:
+		Str = "Damper";
+		break;
+	case ET_INRT:
+		Str = "Inertia";
+		break;
+	case ET_FRCTN:
+		Str = "Friction";
+		break;
+	case ET_CSTM:
+		Str = "Custom Force";
+		break;
+	default:
+		stat = FALSE;
+		break;
+	};
+
+	if (stat)
+		_tcscpy_s(OutStr, 100, Str);
+
+	return stat;
+}
+
+// Convert PID Device Control to String
+BOOL DevCtrl2Str(FFB_CTRL Ctrl, LPTSTR OutStr)
+{
+	BOOL stat = TRUE;
+	LPTSTR Str = "";
+
+	switch (Ctrl)
+	{
+	case CTRL_ENACT:
+		Str = "Enable Actuators";
+		break;
+	case CTRL_DISACT:
+		Str = "Disable Actuators";
+		break;
+	case CTRL_STOPALL:
+		Str = "Stop All Effects";
+		break;
+	case CTRL_DEVRST:
+		Str = "Device Reset";
+		break;
+	case CTRL_DEVPAUSE:
+		Str = "Device Pause";
+		break;
+	case CTRL_DEVCONT:
+		Str = "Device Continue";
+		break;
+	default:
+		stat = FALSE;
+		break;
+	}
+	if (stat)
+		_tcscpy_s(OutStr, 100, Str);
+
+	return stat;
+}
+
+// Convert Effect operation to string
+BOOL EffectOpStr(FFBOP Op, LPTSTR OutStr)
+{
+	BOOL stat = TRUE;
+	LPTSTR Str = "";
+
+	switch (Op)
+	{
+	case EFF_START:
+		Str = "Effect Start";
+		break;
+	case EFF_SOLO:
+		Str = "Effect Solo Start";
+		break;
+	case EFF_STOP:
+		Str = "Effect Stop";
+		break;
+	default:
+		stat = FALSE;
+		break;
+	}
+
+	if (stat)
+		_tcscpy_s(OutStr, 100, Str);
+
+	return stat;
+}
+
+// Polar values (0x00-0xFF) to Degrees (0-360)
+int Polar2Deg(BYTE Polar)
+{
+	return ((UINT)Polar * 360) / 255;
+}
+
+// Convert range 0x00-0xFF to 0%-100%
+int Byte2Percent(BYTE InByte)
+{
+	return ((UINT)InByte * 100) / 255;
+}
+
+// Convert One-Byte 2's complement input to integer
+int TwosCompByte2Int(BYTE in)
+{
+	int tmp;
+	BYTE inv = ~in;
+	BOOL isNeg = in >> 7;
+	if (isNeg)
+	{
+		tmp = (int)(inv);
+		tmp = -1 * tmp;
+		return tmp;
+	}
+	else
+		return (int)in;
+}
 
 //extern "C" {
 //	//void init_serial(struct sp_port **port);
 //	WheelSystemState read_bytes(struct sp_port** port);
 //}
-void ParseFfbData(PFFB_DATA pPacket) {
-	if (!pPacket) {
+void ParseFfbData(PVOID data) {
+	if (!data) {
 		std::cerr << "Invalid FFB packet received!" << std::endl;
 		return;
 	}
 	// Extract size, command, and data
-	ULONG size = pPacket->size;
-	ULONG cmd = pPacket->cmd;
-	const UCHAR* data = pPacket->data;
-
-	// Ensure the packet is valid
-	if (size < sizeof(FFB_DATA)) {
-		std::cerr << "Packet size too small!" << std::endl;
-		return;
-	}
-
-	// Handle the command type
-	switch (cmd) {
+	int size = 12;
+	FFBPType Type;
+	Ffb_h_Type((FFB_DATA*)data, &Type);
+	switch (Type) {
 	case PT_CONSTREP: {
 		// Parse constant force
-		if (size >= sizeof(FFB_DATA) + sizeof(SHORT)) {
-			SHORT magnitude = *reinterpret_cast<const SHORT*>(data);
-			std::cout << "Constant Force: Magnitude = " << magnitude << std::endl;
-		}
+			//SHORT magnitude = *reinterpret_cast<const SHORT*>(data);/*
+			//std::cout << "Constant Force: Magnitude = " << magnitude << std::endl;*/
+		FFB_EFF_CONSTANT Effect;
+		Ffb_h_Eff_Constant((FFB_DATA*)data, &Effect);
+		std::cout << "Constant Force: Magnitude = " << Effect.Magnitude << std::endl;
 		break;
 	}
-	case PT_RAMPREP: {
-		// Parse ramp force
-		if (size >= sizeof(FFB_DATA) + 2 * sizeof(SHORT)) {
-			SHORT start = *reinterpret_cast<const SHORT*>(data);
-			SHORT end = *reinterpret_cast<const SHORT*>(data + sizeof(SHORT));
-			std::cout << "Ramp Effect: Start = " << start << ", End = " << end << std::endl;
-		}
-		break;
 	}
-	case PT_CONDREP: {
-		// Parse friction effect (conditions)
-		if (size >= sizeof(FFB_DATA) + 2 * sizeof(SHORT)) {
-			SHORT positiveCoeff = *reinterpret_cast<const SHORT*>(data);
-			SHORT negativeCoeff = *reinterpret_cast<const SHORT*>(data + sizeof(SHORT));
-			std::cout << "Friction Effect: Positive Coeff = " << positiveCoeff
-				<< ", Negative Coeff = " << negativeCoeff << std::endl;
-		}
-		break;
-	}
-	default:
-		std::cerr << "Unknown command type: " << cmd << std::endl;
-	}
+	// Handle the command type
+	
 }
 
-VOID CALLBACK FfbPacketCallback(PVOID data, PVOID userData) {
-	auto* pPacket = reinterpret_cast<PFFB_DATA>(data);
-	ParseFfbData(pPacket);
+//VOID CALLBACK FfbPacketCallback(PVOID data, PVOID userData) {
+	
+//	FFB_DATA* pPacket = reinterpret_cast<FFB_DATA *>(data);
+//	ParseFfbData(pPacket);
+//	//printf("%l %l %l\n", pPacket->cmd, pPacket->size, pPacket->data);
+//	int i;
+//	for (int i = 0; i < 8; i++) {
+//		printf("%02X", ((uint8_t*)data)[i]);
+//	}
+//	printf("\n");
+	//fprintf(ffb_file,"%l %l %l\n", pPacket->cmd, pPacket->size, pPacket->data);
+//	for (int i = 0; i < 8; i++) {
+//		fprintf(ffb_file,"%02X", ((uint8_t*)data)[i]);
+//	}
+//	fprintf(ffb_file,"\n");
+//}
+void CALLBACK FfbFunction(PVOID data)
+{
+	FFB_DATA* FfbData = (FFB_DATA*)data;
+	int size = FfbData->size;
+	_tprintf("\nFFB Size %d\n", size);
+
+	_tprintf("Cmd:%08.8X ", FfbData->cmd);
+	_tprintf("ID:%02.2X ", FfbData->data[0]);
+	_tprintf("Size:%02.2d ", static_cast<int>(FfbData->size - 8));
+	_tprintf(" - ");
+	for (UINT i = 0; i < FfbData->size - 8; i++)
+		_tprintf(" %02.2X", (UINT)FfbData->data);
+	_tprintf("\n");
 }
+
+void CALLBACK FfbFunction1(PVOID data, PVOID userdata)
+{
+	// Packet Header
+	_tprintf("\n ============= FFB Packet size Size %d =============\n", static_cast<int>(((FFB_DATA*)data)->size));
+
+	/////// Packet Device ID, and Type Block Index (if exists)
+#pragma region Packet Device ID, and Type Block Index
+	int DeviceID, BlockIndex;
+	FFBPType	Type;
+	TCHAR	TypeStr[100];
+
+	if (ERROR_SUCCESS == Ffb_h_DeviceID((FFB_DATA*)data, &DeviceID))
+		_tprintf("\n > Device ID: %d", DeviceID);
+	if (ERROR_SUCCESS == Ffb_h_Type((FFB_DATA*)data, &Type))
+	{
+		if (!PacketType2Str(Type, TypeStr))
+			_tprintf("\n > Packet Type: %d", Type);
+		else
+			_tprintf("\n > Packet Type: %s", TypeStr);
+
+	}
+	if (ERROR_SUCCESS == Ffb_h_EBI((FFB_DATA*)data, &BlockIndex))
+		_tprintf("\n > Effect Block Index: %d", BlockIndex);
+#pragma endregion
+
+
+	/////// Effect Report
+#pragma region Effect Report
+	FFB_EFF_CONST Effect;
+	if (ERROR_SUCCESS == Ffb_h_Eff_Report((FFB_DATA*)data, &Effect))
+	{
+		if (!EffectType2Str(Effect.EffectType, TypeStr))
+			_tprintf("\n >> Effect Report: %02x", Effect.EffectType);
+		else
+			_tprintf("\n >> Effect Report: %s", TypeStr);
+
+		if (Effect.Polar)
+		{
+			_tprintf("\n >> Direction: %d deg (%02x)", Polar2Deg(Effect.Direction), Effect.Direction);
+
+
+		}
+		else
+		{
+			_tprintf("\n >> X Direction: %02x", Effect.DirX);
+			_tprintf("\n >> Y Direction: %02x", Effect.DirY);
+		};
+
+		if (Effect.Duration == 0xFFFF)
+			_tprintf("\n >> Duration: Infinit");
+		else
+			_tprintf("\n >> Duration: %d MilliSec", static_cast<int>(Effect.Duration));
+
+		if (Effect.TrigerRpt == 0xFFFF)
+			_tprintf("\n >> Trigger Repeat: Infinit");
+		else
+			_tprintf("\n >> Trigger Repeat: %d", static_cast<int>(Effect.TrigerRpt));
+
+		if (Effect.SamplePrd == 0xFFFF)
+			_tprintf("\n >> Sample Period: Infinit");
+		else
+			_tprintf("\n >> Sample Period: %d", static_cast<int>(Effect.SamplePrd));
+
+
+		_tprintf("\n >> Gain: %d%%", Byte2Percent(Effect.Gain));
+
+	};
+#pragma endregion
+#pragma region PID Device Control
+	FFB_CTRL	Control;
+	TCHAR	CtrlStr[100];
+	if (ERROR_SUCCESS == Ffb_h_DevCtrl((FFB_DATA*)data, &Control) && DevCtrl2Str(Control, CtrlStr))
+		_tprintf("\n >> PID Device Control: %s", CtrlStr);
+
+#pragma endregion
+#pragma region Effect Operation
+	FFB_EFF_OP	Operation;
+	TCHAR	EffOpStr[100];
+	if (ERROR_SUCCESS == Ffb_h_EffOp((FFB_DATA*)data, &Operation) && EffectOpStr(Operation.EffectOp, EffOpStr))
+	{
+		_tprintf("\n >> Effect Operation: %s", EffOpStr);
+		if (Operation.LoopCount == 0xFF)
+			_tprintf("\n >> Loop until stopped");
+		else
+			_tprintf("\n >> Loop %d times", static_cast<int>(Operation.LoopCount));
+
+	};
+#pragma endregion
+#pragma region Global Device Gain
+	BYTE Gain;
+	if (ERROR_SUCCESS == Ffb_h_DevGain((FFB_DATA*)data, &Gain))
+		_tprintf("\n >> Global Device Gain: %d", Byte2Percent(Gain));
+
+#pragma endregion
+#pragma region Condition
+	FFB_EFF_COND Condition;
+	if (ERROR_SUCCESS == Ffb_h_Eff_Cond((FFB_DATA*)data, &Condition))
+	{
+		if (Condition.isY)
+			_tprintf("\n >> Y Axis");
+		else
+			_tprintf("\n >> X Axis");
+		_tprintf("\n >> Center Point Offset: %d", TwosCompByte2Int(Condition.CenterPointOffset) * 10000 / 127);
+		_tprintf("\n >> Positive Coefficient: %d", TwosCompByte2Int(Condition.PosCoeff) * 10000 / 127);
+		_tprintf("\n >> Negative Coefficient: %d", TwosCompByte2Int(Condition.NegCoeff) * 10000 / 127);
+		_tprintf("\n >> Positive Saturation: %d", Condition.PosSatur * 10000 / 255);
+		_tprintf("\n >> Negative Saturation: %d", Condition.NegSatur * 10000 / 255);
+		_tprintf("\n >> Dead Band: %d", Condition.DeadBand * 10000 / 255);
+	}
+#pragma endregion
+#pragma region Envelope
+	FFB_EFF_ENVLP Envelope;
+	if (ERROR_SUCCESS == Ffb_h_Eff_Envlp((FFB_DATA*)data, &Envelope))
+	{
+		_tprintf("\n >> Attack Level: %d", Envelope.AttackLevel * 10000 / 255);
+		_tprintf("\n >> Fade Level: %d", Envelope.FadeLevel * 10000 / 255);
+		_tprintf("\n >> Attack Time: %d", static_cast<int>(Envelope.AttackTime));
+		_tprintf("\n >> Fade Time: %d", static_cast<int>(Envelope.FadeTime));
+	};
+
+#pragma endregion
+#pragma region Periodic
+	FFB_EFF_PERIOD EffPrd;
+	if (ERROR_SUCCESS == Ffb_h_Eff_Period((FFB_DATA*)data, &EffPrd))
+	{
+		_tprintf("\n >> Magnitude: %d", EffPrd.Magnitude * 10000 / 255);
+		_tprintf("\n >> Offset: %d", TwosCompByte2Int(EffPrd.Offset) * 10000 / 127);
+		_tprintf("\n >> Phase: %d", EffPrd.Phase * 3600 / 255);
+		_tprintf("\n >> Period: %d", static_cast<int>(EffPrd.Period));
+	};
+#pragma endregion
+
+#pragma region Effect Type
+	FFBEType EffectType;
+	if (ERROR_SUCCESS == Ffb_h_EffNew((FFB_DATA*)data, &EffectType))
+	{
+		if (EffectType2Str(EffectType, TypeStr))
+			_tprintf("\n >> Effect Type: %s", TypeStr);
+		else
+			_tprintf("\n >> Effect Type: Unknown");
+	}
+
+#pragma endregion
+
+#pragma region Ramp Effect
+	FFB_EFF_RAMP RampEffect;
+	if (ERROR_SUCCESS == Ffb_h_Eff_Ramp((FFB_DATA*)data, &RampEffect))
+	{
+		_tprintf("\n >> Ramp Start: %d", TwosCompByte2Int(RampEffect.Start) * 10000 / 127);
+		_tprintf("\n >> Ramp End: %d", TwosCompByte2Int(RampEffect.End) * 10000 / 127);
+	};
+
+#pragma endregion
+
+	_tprintf("\n");
+	FfbFunction(data);
+	ParseFfbData(data);
+	_tprintf("\n ====================================================\n");
+
+}
+
 int main() {
 	struct sp_port *port;
     //init_serial(&port);
@@ -162,17 +541,18 @@ int main() {
 	else
 		_tprintf("Acquired device number %d - OK\n", DevID);
 
-	// register ffb callback
-	//BOOL Ffbstarted = FfbStart(DevID);/*
-	/*if (!Ffbstarted)
+	//register ffb callback
+	BOOL Ffbstarted = FfbStart(DevID);
+	if (!Ffbstarted)
 	{
 		_tprintf("Failed to start FFB on vJoy device number %d.\n", DevID);
 		int dummy = getchar();
 		stat = -3;
-		return;
+		return 0;
 	}
 	else
-		_tprintf("Started FFB on vJoy device number %d - OK\n", DevID);*/
+		_tprintf("Started FFB on vJoy device number %d - OK\n", DevID);
+	FfbRegisterGenCB(FfbFunction1, NULL);
 
 	WheelSystemState state;
 	ffb_packet ffb;
@@ -191,7 +571,7 @@ int main() {
 		catch (int e) {
 			printf("Error reading bytes\n");
 		}
-		printf("Rotation: %d; Breaking: %d; Acc_pedal: %d\n", state.rotation, state.breaking, state.acceleration);
+		//printf("Rotation: %d; Breaking: %d; Acc_pedal: %d\n", state.rotation, state.breaking, state.acceleration);
 		X = state.rotation;
 		Y = state.acceleration;
 		Z = state.breaking;
