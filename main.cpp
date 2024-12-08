@@ -16,6 +16,7 @@ extern "C" {
 #include "vjoyinterface.h"
 #include "Math.h"
 #include <time.h>
+#include <iostream>
 
 #define DEV_ID		1
 
@@ -36,6 +37,60 @@ JOYSTICK_POSITION_V2 iReport;
 //	//void init_serial(struct sp_port **port);
 //	WheelSystemState read_bytes(struct sp_port** port);
 //}
+void ParseFfbData(PFFB_DATA pPacket) {
+	if (!pPacket) {
+		std::cerr << "Invalid FFB packet received!" << std::endl;
+		return;
+	}
+	// Extract size, command, and data
+	ULONG size = pPacket->size;
+	ULONG cmd = pPacket->cmd;
+	const UCHAR* data = pPacket->data;
+
+	// Ensure the packet is valid
+	if (size < sizeof(FFB_DATA)) {
+		std::cerr << "Packet size too small!" << std::endl;
+		return;
+	}
+
+	// Handle the command type
+	switch (cmd) {
+	case PT_CONSTREP: {
+		// Parse constant force
+		if (size >= sizeof(FFB_DATA) + sizeof(SHORT)) {
+			SHORT magnitude = *reinterpret_cast<const SHORT*>(data);
+			std::cout << "Constant Force: Magnitude = " << magnitude << std::endl;
+		}
+		break;
+	}
+	case PT_RAMPREP: {
+		// Parse ramp force
+		if (size >= sizeof(FFB_DATA) + 2 * sizeof(SHORT)) {
+			SHORT start = *reinterpret_cast<const SHORT*>(data);
+			SHORT end = *reinterpret_cast<const SHORT*>(data + sizeof(SHORT));
+			std::cout << "Ramp Effect: Start = " << start << ", End = " << end << std::endl;
+		}
+		break;
+	}
+	case PT_CONDREP: {
+		// Parse friction effect (conditions)
+		if (size >= sizeof(FFB_DATA) + 2 * sizeof(SHORT)) {
+			SHORT positiveCoeff = *reinterpret_cast<const SHORT*>(data);
+			SHORT negativeCoeff = *reinterpret_cast<const SHORT*>(data + sizeof(SHORT));
+			std::cout << "Friction Effect: Positive Coeff = " << positiveCoeff
+				<< ", Negative Coeff = " << negativeCoeff << std::endl;
+		}
+		break;
+	}
+	default:
+		std::cerr << "Unknown command type: " << cmd << std::endl;
+	}
+}
+
+VOID CALLBACK FfbPacketCallback(PVOID data, PVOID userData) {
+	auto* pPacket = reinterpret_cast<PFFB_DATA>(data);
+	ParseFfbData(pPacket);
+}
 int main() {
 	struct sp_port *port;
     //init_serial(&port);
