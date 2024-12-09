@@ -33,12 +33,12 @@ typedef struct {
 } ffb_packet;
 #pragma pack()
 struct sp_port* init_serial();
-	void send_ffb_bytes(struct sp_port* port, char* data, size_t size);
+	void send_bytes(struct sp_port* port, char* data, size_t size);
 	WheelSystemState read_bytes(struct sp_port** port);
 	uint16_t calculate_crc16_checksum(WheelSystemState* state);
 	bool close_serial(struct sp_port* port);
 	void calibrate_wheel(struct sp_port** port);
 	uint8_t* read_calibration(struct sp_port** port);
-	void send_const_force(struct sp_port** port,int16_t force);
+	void send_const_force(int16_t force);
 
 #endif //UNTITLED_LIBRARY_H

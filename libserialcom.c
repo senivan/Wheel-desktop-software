@@ -67,14 +67,14 @@ uint16_t acceleration_end = 1250;
 //	delta = (right_max > center) ? right_max - center : left_max - center;
 //	printf("Calibration done!\n");
 //}
-
-void send_const_force(struct sp_port** port, int16_t force) {
-	uint8_t data[3];
+struct sp_port** _port;
+void send_const_force(int16_t force) {
+	uint8_t data[4];
 	data[0] = 0x34;
 	data[1] = 0x01;
 	data[2] = force & 0xFF;
 	data[3] = (force >> 8) & 0xFF;
-	sp_blocking_write(*port, data, 4, 1000);
+	sp_blocking_write(*_port, data, 4, 1000);
 }
 
 void calibrate_wheel(struct sp_port** port)
@@ -169,12 +169,8 @@ WheelSystemState read_bytes(struct sp_port **port) {
 	return state;
 }
 
-void send_ffb_bytes(struct sp_port *port, ffb_packet ffb) {
-	char data[3];
-	data[0] = 0x34;
-	data[1] = ffb.ffb_strength;
-	data[2] = (ffb.ffb_direction << 7) | (ffb.ffb_type << 5);
-    sp_nonblocking_write(port, data, 3);
+void send_bytes(struct sp_port *port, char* data, size_t size) {
+    sp_nonblocking_write(port, data, size);
 }
 
 /*uint16_t calculate_crc16_checksum(WheelSystemState* state) {

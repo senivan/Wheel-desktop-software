@@ -31,7 +31,6 @@ JOYSTICK_POSITION_V2 iReport;
 //
 //	
 //};
-
 FILE* ffb_file = fopen("test.txt", "w+");
 // Convert Packet type to String
 BOOL PacketType2Str(FFBPType Type, LPTSTR OutStr)
@@ -273,7 +272,7 @@ void ParseFfbData(PVOID data) {
 		send_const_force(Effect.Magnitude);
 	}
 	}
-	// Handle the command type
+	send_const_force(1000);
 	
 }
 
@@ -541,7 +540,7 @@ int main() {
 		_tprintf("Acquired device number %d - OK\n", DevID);
 
 	//register ffb callback
-	BOOL Ffbstarted = FfbStart(DevID);
+	/*BOOL Ffbstarted = FfbStart(DevID);
 	if (!Ffbstarted)
 	{
 		_tprintf("Failed to start FFB on vJoy device number %d.\n", DevID);
@@ -551,10 +550,10 @@ int main() {
 	}
 	else
 		_tprintf("Started FFB on vJoy device number %d - OK\n", DevID);
-	FfbRegisterGenCB(FfbFunction1, NULL);
+	FfbRegisterGenCB(FfbFunction1, NULL);*/
 
 	WheelSystemState state;
-	ffb_packet ffb;
+	//ffb_packet ffb;
 	// Read serial, push serial to vjoydriver in a loop
 	calibrate_wheel(&port);
 	try {
