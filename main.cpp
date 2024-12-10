@@ -254,11 +254,7 @@ int TwosCompByte2Int(BYTE in)
 //	//void init_serial(struct sp_port **port);
 //	WheelSystemState read_bytes(struct sp_port** port);
 //}
-void ParseFfbData(PVOID data) {
-	if (!data) {
-		std::cerr << "Invalid FFB packet received!" << std::endl;
-		return;
-	}
+void ParseFfbData(PVOID data, sp_port** port) {
 	// Extract size, command, and data
 	int size = 12;
 	FFBPType Type;
@@ -270,10 +266,10 @@ void ParseFfbData(PVOID data) {
 			//std::cout << "Constant Force: Magnitude = " << magnitude << std::endl;*/
 		FFB_EFF_CONSTANT Effect;
 		Ffb_h_Eff_Constant((FFB_DATA*)data, &Effect);
-		send_const_force(Effect.Magnitude);
+		send_const_force(Effect.Magnitude, port);
 	}
 	}
-	send_const_force(1000);
+	//send_const_force(1000, port);
 	
 }
 
@@ -570,7 +566,7 @@ int main() {
 				state = read_bytes(&port);
 			}
 			else {
-				ParseFfbData(FfbData);
+				ParseFfbData(FfbData, &port);
 			}
 			flag = !flag;
 		}
