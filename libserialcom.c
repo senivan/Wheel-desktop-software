@@ -79,39 +79,21 @@ void send_const_force(int16_t force, struct sp_port** port) {
 
 void calibrate_wheel(struct sp_port** port)
 {
-	uint8_t buf[7];
+	uint8_t buf[4];
 	uint8_t temp[1];
 	printf("Rotate wheel to the left until he end!!!\n");
 	temp[0] = 0x42;
 	bool left_flag = false;
 	bool right_flag = false;
-	while (true) {
-		sp_blocking_write(*port, temp, 1, 1000);
-		sp_blocking_read(*port, buf, 7, 1000);
-		uint16_t rotation = buf[0] | (buf[1] << 8);
-		uint16_t acceleration = buf[2] | (buf[3] << 8);
-		uint16_t breaking = buf[4] | (buf[5] << 8);
-		uint8_t left_stop = buf[6] & 0x01;
-		uint8_t right_stop = (buf[6] >> 1) & 0x01;
-		printf("State: %d %d %d %d %d\n", rotation, acceleration, breaking, left_stop, right_stop);
-		if (left_stop == 1) {
-			left_flag = true;
-			left_max = rotation + 10;
-			printf("Now turn to the right\n");
-		}
-		if (right_stop == 1) {
-			right_flag = true;
-			printf("Now release the wheel\n");
-			right_max = rotation - 10;
-		}
-		if (left_flag && right_flag) {
-			center = (left_max + right_max) / 2;
-			delta = (right_max > center) ? right_max - center : left_max - center;
-			printf("Calibration done!\n");
-			return;
-		}
-	}
-	
+	sp_blocking_write(*port, temp, 1, 1000);
+	sp_blocking_read(*port, buf, 4, 10000);
+	right_max = (buf[0] | (buf[1] << 8));
+	left_max = (buf[2] | (buf[3] << 8));
+	printf("Left max: %d\n", left_max);
+	printf("Right max: %d\n", right_max);
+	center = (left_max + right_max) / 2;
+	delta = (right_max > center) ? right_max - center : left_max - center;
+
 }
 WheelSystemState read_bytes(struct sp_port **port) {
     WheelSystemState state;
@@ -159,13 +141,10 @@ WheelSystemState read_bytes(struct sp_port **port) {
 	//printf("Rotation: %d\n", state.rotation);
 
 	//normalise_rotation(&state.rotation);
-	if (delta == 0) {
-		return state;
-	}
-	state.rotation = (((state.rotation - center) * 32767 / delta)+32767) / 2;
+	state.rotation = (((state.rotation - center) * 32767 / delta)+32767);
 	state.breaking = ((state.breaking - break_start) * 32767 / (break_end - break_start));
 	state.acceleration = ((state.acceleration - acceleration_start) * 32767 / (acceleration_end - acceleration_start));
-	printf("State: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", state.rotation, state.left_arr, state.right_arr, state.down_arr, state.up_arr, state.a_butt, state.b_butt, state.x_butt, state.y_butt, state.dl_butt, state.dr_butt, state.r_shift, state.l_shift, state.acceleration, state.breaking);
+	//printf("State: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", state.rotation, state.left_arr, state.right_arr, state.down_arr, state.up_arr, state.a_butt, state.b_butt, state.x_butt, state.y_butt, state.dl_butt, state.dr_butt, state.r_shift, state.l_shift, state.acceleration, state.breaking);
 	return state;
 }
 

@@ -38,7 +38,7 @@ struct sp_port* init_serial();
 	uint16_t calculate_crc16_checksum(WheelSystemState* state);
 	bool close_serial(struct sp_port* port);
 	void calibrate_wheel(struct sp_port** port);
-	uint8_t* read_calibration(struct sp_port** port);
+	//uint8_t* /*read_calibration*/(struct sp_port** port);
 	void send_const_force(int16_t force, struct sp_port** port);
 
 #endif //UNTITLED_LIBRARY_H
